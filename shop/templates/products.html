@@ -14,16 +14,12 @@
 
     <!-- ===== CATEGORY FILTER ===== -->
     <div style="display:flex;flex-wrap:wrap;gap:0.75rem;max-width:1200px;margin:0 auto 2.5rem;justify-content:center;">
-        <button class="cat-pill active" id="cat-all" onclick="filterProducts('all',this)">🍳 All Items</button>
-        <button class="cat-pill" id="cat-sufuria" onclick="filterProducts('sufuria',this)">🥘 Sufuria & Pots</button>
-        <button class="cat-pill" id="cat-pans" onclick="filterProducts('pans',this)">🍳 Frying Pans</button>
-        <button class="cat-pill" id="cat-knives" onclick="filterProducts('knives',this)">🔪 Knives</button>
-        <button class="cat-pill" id="cat-utensils" onclick="filterProducts('utensils',this)">🥄 Utensils</button>
-        <button class="cat-pill" id="cat-bowls" onclick="filterProducts('bowls',this)">🥣 Bowls & Storage</button>
-        <button class="cat-pill" id="cat-appliances" onclick="filterProducts('appliances',this)">⚡ Appliances</button>
-        <button class="cat-pill" id="cat-baking" onclick="filterProducts('baking',this)">🧁 Baking</button>
-        <button class="cat-pill" id="cat-accessories" onclick="filterProducts('accessories',this)">🧰
-            Accessories</button>
+        <a href="?cat=all" class="cat-pill {% if active_cat == 'all' %}active{% endif %}">🍳 All Items</a>
+        {% for cat in categories %}
+        <a href="?cat={{ cat.slug }}" class="cat-pill {% if active_cat == cat.slug %}active{% endif %}">
+            {{ cat.name }}
+        </a>
+        {% endfor %}
     </div>
 
     <!-- ===== SEARCH + COUNT ===== -->
@@ -36,576 +32,57 @@
                 onfocus="this.style.borderColor='var(--primary)'"
                 onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
         </div>
-        <div id="productCount" style="color:var(--muted);font-size:0.85rem;font-weight:500;"></div>
+        <div id="productCount" style="color:var(--muted);font-size:0.85rem;font-weight:500;">
+            {{ products|length }} product{{ products|length|pluralize }} found
+        </div>
     </div>
 
     <!-- ===== PRODUCTS GRID ===== -->
     <div class="products-grid" id="productsGrid" style="max-width:1200px;margin:0 auto;">
 
-        <!-- ===== SUFURIA & POTS ===== -->
-
-        <div class="product-card fade-up" data-cat="sufuria">
+        {% for product in products %}
+        <div class="product-card fade-up" data-cat="{{ product.category.slug }}">
             <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Aluminium Sufuria Set"
-                    onclick="openModal('Aluminium Sufuria Set (5pcs)','3200','{% static 'shop/images/pots.png' %}','Set of 5 heavy-gauge aluminium sufuria in assorted sizes (1L, 2L, 3L, 5L, 7L) with lids. Ideal for everyday cooking on gas, kerosene or electric stoves.','Sufuria & Pots')">
-                <span class="product-badge sale">Popular</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Aluminium Sufuria Set')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Aluminium Sufuria Set (5pcs)','3200','{% static 'shop/images/pots.png' %}','Set of 5 heavy-gauge aluminium sufuria with lids.','Sufuria & Pots')">Quick
-                        View</button></div>
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}" 
+                     alt="{{ product.name }}"
+                     onclick="openModal('{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
+                
+                {% if product.badge %}
+                <span class="product-badge {{ product.badge|lower }}">{% if product.badge == 'SALE' %}-{{ product.discount_percentage }}%{% else %}{{ product.badge }}{% endif %}</span>
+                {% endif %}
+                
+                <button class="product-wishlist" onclick="toggleWishlist(this,'{{ product.name|escapejs }}')">♡</button>
+                <div class="product-overlay">
+                    <button class="btn btn-primary"
+                        onclick="openModal('{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
+                        Quick View
+                    </button>
+                </div>
             </div>
             <div class="product-info">
-                <div class="product-cat">Sufuria & Pots</div>
-                <div class="product-name">Aluminium Sufuria Set (5pcs)</div>
-                <div class="product-desc">Heavy-gauge, 1L–7L sizes, gas/electric compatible.</div>
+                <div class="product-cat">{{ product.category.name }}</div>
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-desc">{{ product.description|truncatechars:60 }}</div>
                 <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 3,200</span><span class="price-old">KES
-                            4,000</span></div>
+                    <div class="product-price">
+                        <span class="price-current">KES {{ product.price|floatformat:0 }}</span>
+                        {% if product.old_price %}
+                        <span class="price-old">KES {{ product.old_price|floatformat:0 }}</span>
+                        {% endif %}
+                    </div>
                     <button class="add-to-cart"
-                        onclick="addToCart('Aluminium Sufuria Set (5pcs)',3200,'{% static 'shop/images/pots.png' %}')">+</button>
+                        onclick="addToCart('{{ product.name|escapejs }}', {{ product.price }}, '{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}')">
+                        +
+                    </button>
                 </div>
             </div>
         </div>
-
-        <div class="product-card fade-up" data-cat="sufuria">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Stainless Steel Cooking Pot"
-                    onclick="openModal('Stainless Steel Cooking Pot 10L','4,500','{% static 'shop/images/pots.png' %}','Premium stainless steel pot, 10 litre capacity. Tri-ply base for even heat distribution. Dishwasher safe, oven safe up to 220°C. Includes tempered glass lid.','Sufuria & Pots')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist"
-                    onclick="toggleWishlist(this,'Stainless Steel Cooking Pot 10L')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Stainless Steel Cooking Pot 10L','4500','{% static 'shop/images/pots.png' %}','Premium 10L stainless steel pot.','Sufuria & Pots')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Sufuria & Pots</div>
-                <div class="product-name">Stainless Steel Cooking Pot 10L</div>
-                <div class="product-desc">Tri-ply base, tempered glass lid, oven-safe.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 4,500</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Stainless Steel Cooking Pot 10L',4500,'{% static 'shop/images/pots.png' %}')">+</button>
-                </div>
-            </div>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 5rem 1rem; color: var(--muted);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <p>No products available in this category yet. Check back soon!</p>
         </div>
-
-        <div class="product-card fade-up" data-cat="sufuria">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Pressure Cooker 7.5L"
-                    onclick="openModal('Pressure Cooker 7.5L','6,800','{% static 'shop/images/pots.png' %}','Safety-certified stainless steel pressure cooker. 7.5 litre. Cooks beans, meat and rice up to 70% faster. Dual safety valves. Suitable for all hob types.','Sufuria & Pots')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Pressure Cooker 7.5L')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Pressure Cooker 7.5L','6800','{% static 'shop/images/pots.png' %}','7.5L safety pressure cooker.','Sufuria & Pots')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Sufuria & Pots</div>
-                <div class="product-name">Pressure Cooker 7.5L</div>
-                <div class="product-desc">Dual safety valves, stainless steel, all hob types.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 6,800</span><span class="price-old">KES
-                            8,500</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Pressure Cooker 7.5L',6800,'{% static 'shop/images/pots.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== FRYING PANS ===== -->
-
-        <div class="product-card fade-up" data-cat="pans">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Non-Stick Frying Pan 28cm"
-                    onclick="openModal('Non-Stick Frying Pan 28cm','1,850','{% static 'shop/images/pots.png' %}','PFOA-free granite-coated non-stick frying pan. 28cm diameter. Suitable for gas, electric and induction hobs. Stay-cool bakelite handle. Dishwasher safe.','Frying Pans')">
-                <span class="product-badge sale">Best Seller</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Non-Stick Frying Pan 28cm')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Non-Stick Frying Pan 28cm','1850','{% static 'shop/images/pots.png' %}','28cm granite-coated non-stick pan.','Frying Pans')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Frying Pans</div>
-                <div class="product-name">Non-Stick Frying Pan 28cm</div>
-                <div class="product-desc">Granite-coat, PFOA-free, induction compatible.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,850</span><span class="price-old">KES
-                            2,500</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Non-Stick Frying Pan 28cm',1850,'{% static 'shop/images/pots.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="pans">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Cast Iron Skillet 26cm"
-                    onclick="openModal('Cast Iron Skillet 26cm','3,500','{% static 'shop/images/pots.png' %}','Pre-seasoned cast iron skillet. 26cm. Retains heat for perfectly seared meat, chapati, and stir-fries. Use on gas, charcoal jiko, or in the oven. Lifetime durability.','Frying Pans')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Cast Iron Skillet 26cm')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Cast Iron Skillet 26cm','3500','{% static 'shop/images/pots.png' %}','Pre-seasoned 26cm cast iron skillet.','Frying Pans')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Frying Pans</div>
-                <div class="product-name">Cast Iron Skillet 26cm</div>
-                <div class="product-desc">Pre-seasoned, gas/jiko/oven safe, lifetime durability.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 3,500</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Cast Iron Skillet 26cm',3500,'{% static 'shop/images/pots.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="pans">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Wok 32cm"
-                    onclick="openModal('Carbon Steel Wok 32cm','2,200','{% static 'shop/images/pots.png' %}','32cm carbon steel wok with flat base. Perfect for stir-frying, deep-frying, and steaming. Lightweight with wooden handle. Works on all hob types.','Frying Pans')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Carbon Steel Wok 32cm')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Carbon Steel Wok 32cm','2200','{% static 'shop/images/pots.png' %}','32cm flat-base carbon steel wok.','Frying Pans')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Frying Pans</div>
-                <div class="product-name">Carbon Steel Wok 32cm</div>
-                <div class="product-desc">Flat base, wooden handle, all hob types, 32cm.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 2,200</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Carbon Steel Wok 32cm',2200,'{% static 'shop/images/pots.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== KNIVES ===== -->
-
-        <div class="product-card fade-up" data-cat="knives">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/knives.png' %}" alt="Chef Knife Set 3pcs"
-                    onclick="openModal('Professional Chef Knife Set (3pcs)','2,800','{% static 'shop/images/knives.png' %}','Set of 3 high-carbon stainless steel knives: 20cm chef knife, 17cm santoku, and 10cm paring knife. Ergonomic handles. Full tang construction for balance.','Knives')">
-                <span class="product-badge sale">Sale</span>
-                <button class="product-wishlist"
-                    onclick="toggleWishlist(this,'Professional Chef Knife Set 3pcs')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Professional Chef Knife Set (3pcs)','2800','{% static 'shop/images/knives.png' %}','3pcs high-carbon stainless chef knives.','Knives')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Knives</div>
-                <div class="product-name">Professional Chef Knife Set (3pcs)</div>
-                <div class="product-desc">High-carbon steel, full tang, ergonomic handles.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 2,800</span><span class="price-old">KES
-                            4,000</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Professional Chef Knife Set (3pcs)',2800,'{% static 'shop/images/knives.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="knives">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/knives.png' %}" alt="Bread Knife Serrated"
-                    onclick="openModal('Serrated Bread Knife 20cm','900','{% static 'shop/images/knives.png' %}','20cm serrated stainless steel bread knife. Effortlessly slices through crusty bread, tomatoes and cakes without crushing. Non-slip handle. Rust resistant.','Knives')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Serrated Bread Knife 20cm')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Serrated Bread Knife 20cm','900','{% static 'shop/images/knives.png' %}','20cm serrated bread knife.','Knives')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Knives</div>
-                <div class="product-name">Serrated Bread Knife 20cm</div>
-                <div class="product-desc">Rust-resistant stainless steel, non-slip handle.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 900</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Serrated Bread Knife 20cm',900,'{% static 'shop/images/knives.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== UTENSILS ===== -->
-
-        <div class="product-card fade-up" data-cat="utensils">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Silicone Utensil Set 12pcs"
-                    onclick="openModal('Silicone Utensil Set (12pcs)','1,500','{% static 'shop/images/utensils.png' %}','12-piece BPA-free silicone kitchen utensil set: spatula, ladle, slotted spoon, whisk, tongs, pasta fork and more. Heat-resistant to 250°C. Dishwasher safe.','Utensils')">
-                <span class="product-badge sale">Popular</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Silicone Utensil Set 12pcs')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Silicone Utensil Set (12pcs)','1500','{% static 'shop/images/utensils.png' %}','12pcs BPA-free silicone utensils.','Utensils')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Utensils</div>
-                <div class="product-name">Silicone Utensil Set (12pcs)</div>
-                <div class="product-desc">BPA-free, heat-resistant 250°C, dishwasher safe.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,500</span><span class="price-old">KES
-                            2,000</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Silicone Utensil Set (12pcs)',1500,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="utensils">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Wooden Cooking Spoon Set"
-                    onclick="openModal('Wooden Cooking Spoon Set (6pcs)','650','{% static 'shop/images/utensils.png' %}','Set of 6 natural hardwood cooking spoons and spatulas. Non-scratch, gentle on all cookware. Naturally antibacterial. Great for sufuria, pots and pans.','Utensils')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Wooden Cooking Spoon Set')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Wooden Cooking Spoon Set (6pcs)','650','{% static 'shop/images/utensils.png' %}','6pcs natural hardwood cooking spoons.','Utensils')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Utensils</div>
-                <div class="product-name">Wooden Cooking Spoon Set (6pcs)</div>
-                <div class="product-desc">Hardwood, non-scratch, antibacterial, all cookware.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 650</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Wooden Cooking Spoon Set (6pcs)',650,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="utensils">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Colander Strainer"
-                    onclick="openModal('Stainless Steel Colander 24cm','1,100','{% static 'shop/images/utensils.png' %}','Large 24cm stainless steel colander with fine mesh. Perfect for draining pasta, rice, ugali or vegetables. Foldable handles, stable flat base. Rust-proof.','Utensils')">
-                <button class="product-wishlist"
-                    onclick="toggleWishlist(this,'Stainless Steel Colander 24cm')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Stainless Steel Colander 24cm','1100','{% static 'shop/images/utensils.png' %}','24cm stainless colander, rust-proof.','Utensils')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Utensils</div>
-                <div class="product-name">Stainless Steel Colander 24cm</div>
-                <div class="product-desc">Fine mesh, foldable handles, flat base, rust-proof.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,100</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Stainless Steel Colander 24cm',1100,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="utensils">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Grater Box 4-Sided"
-                    onclick="openModal('4-Sided Box Grater','550','{% static 'shop/images/utensils.png' %}','Stainless steel 4-sided box grater with coarse, medium, fine and slicer sides. Non-slip base. Great for cheese, carrots, potatoes and lemon zest.','Utensils')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'4-Sided Box Grater')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('4-Sided Box Grater','550','{% static 'shop/images/utensils.png' %}','4-sided stainless steel box grater.','Utensils')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Utensils</div>
-                <div class="product-name">4-Sided Box Grater</div>
-                <div class="product-desc">4 grating sizes, stainless steel, non-slip base.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 550</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('4-Sided Box Grater',550,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== BOWLS & STORAGE ===== -->
-
-        <div class="product-card fade-up" data-cat="bowls">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/bowls.png' %}" alt="Ceramic Mixing Bowl Set"
-                    onclick="openModal('Ceramic Mixing Bowl Set (5pcs)','2,400','{% static 'shop/images/bowls.png' %}','Set of 5 nesting ceramic mixing bowls. Sizes: 1L, 1.5L, 2L, 3L, 4L. Microwave & dishwasher safe. Pour spout and non-slip base on each bowl.','Bowls & Storage')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Ceramic Mixing Bowl Set')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Ceramic Mixing Bowl Set (5pcs)','2400','{% static 'shop/images/bowls.png' %}','5pcs nesting ceramic mixing bowls.','Bowls & Storage')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Bowls & Storage</div>
-                <div class="product-name">Ceramic Mixing Bowl Set (5pcs)</div>
-                <div class="product-desc">Pour spout, non-slip base, microwave safe, 1L–4L.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 2,400</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Ceramic Mixing Bowl Set (5pcs)',2400,'{% static 'shop/images/bowls.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="bowls">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/bowls.png' %}" alt="Plastic Food Storage Containers"
-                    onclick="openModal('Airtight Food Storage Set (10pcs)','1,200','{% static 'shop/images/bowls.png' %}','10-piece BPA-free airtight food storage containers. Stackable design. Suitable for fridge and freezer. Leak-proof lids keep food fresh for longer. Various sizes.','Bowls & Storage')">
-                <button class="product-wishlist"
-                    onclick="toggleWishlist(this,'Airtight Food Storage Set 10pcs')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Airtight Food Storage Set (10pcs)','1200','{% static 'shop/images/bowls.png' %}','10pcs BPA-free airtight containers.','Bowls & Storage')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Bowls & Storage</div>
-                <div class="product-name">Airtight Food Storage Set (10pcs)</div>
-                <div class="product-desc">BPA-free, stackable, leak-proof, fridge &amp; freezer safe.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,200</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Airtight Food Storage Set (10pcs)',1200,'{% static 'shop/images/bowls.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== APPLIANCES ===== -->
-
-        <div class="product-card fade-up" data-cat="appliances">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/blender.png' %}" alt="Blender 1500W"
-                    onclick="openModal('High-Power Blender 1500W','7,500','{% static 'shop/images/blender.png' %}','1500-watt professional blender with 6 pre-set programmes. 1.5L BPA-free jar. Self-cleaning mode. Crushes ice, blends smoothies, soups and sauces effortlessly.','Appliances')">
-                <span class="product-badge sale">Sale</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'High-Power Blender 1500W')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('High-Power Blender 1500W','7500','{% static 'shop/images/blender.png' %}','1500W blender, 1.5L BPA-free jar.','Appliances')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Appliances</div>
-                <div class="product-name">High-Power Blender 1500W</div>
-                <div class="product-desc">1500W, 1.5L BPA-free, 6 programmes, self-clean.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 7,500</span><span class="price-old">KES
-                            9,500</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('High-Power Blender 1500W',7500,'{% static 'shop/images/blender.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="appliances">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/blender.png' %}" alt="Electric Kettle"
-                    onclick="openModal('Stainless Steel Electric Kettle 1.7L','2,800','{% static 'shop/images/blender.png' %}','1.7 litre stainless steel electric kettle with 1500W rapid boil. Auto shut-off and boil-dry protection. 360° cordless base. Heats water in under 3 minutes.','Appliances')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Electric Kettle 1.7L')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Stainless Steel Electric Kettle 1.7L','2800','{% static 'shop/images/blender.png' %}','1500W rapid-boil electric kettle.','Appliances')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Appliances</div>
-                <div class="product-name">Electric Kettle 1.7L</div>
-                <div class="product-desc">1500W rapid-boil, auto shut-off, 360° cordless base.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 2,800</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Electric Kettle 1.7L',2800,'{% static 'shop/images/blender.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="appliances">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/blender.png' %}" alt="Rice Cooker 1.8L"
-                    onclick="openModal('Rice Cooker 1.8L','3,500','{% static 'shop/images/blender.png' %}','1.8 litre non-stick rice cooker with keep-warm function. Cooks rice, ugali, pilau and porridge. Includes measuring cup and serving spatula. Cool-touch exterior.','Appliances')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Rice Cooker 1.8L')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Rice Cooker 1.8L','3500','{% static 'shop/images/blender.png' %}','1.8L rice cooker with keep-warm.','Appliances')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Appliances</div>
-                <div class="product-name">Rice Cooker 1.8L</div>
-                <div class="product-desc">Non-stick inner pot, keep-warm, cooks ugali &amp; pilau.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 3,500</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Rice Cooker 1.8L',3500,'{% static 'shop/images/blender.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="appliances">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/blender.png' %}" alt="Hand Mixer 300W"
-                    onclick="openModal('Electric Hand Mixer 300W','2,200','{% static 'shop/images/blender.png' %}','300W electric hand mixer with 5 speed settings and turbo boost. Includes 2 beaters and 2 dough hooks. Compact design. Ideal for cakes, chapati dough and cream.','Appliances')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Electric Hand Mixer 300W')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Electric Hand Mixer 300W','2200','{% static 'shop/images/blender.png' %}','300W hand mixer, 5-speed turbo.','Appliances')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Appliances</div>
-                <div class="product-name">Electric Hand Mixer 300W</div>
-                <div class="product-desc">5-speed + turbo, beaters &amp; dough hooks included.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 2,200</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Electric Hand Mixer 300W',2200,'{% static 'shop/images/blender.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== BAKING ===== -->
-
-        <div class="product-card fade-up" data-cat="baking">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/bowls.png' %}" alt="Non-Stick Baking Tray"
-                    onclick="openModal('Non-Stick Baking Tray Set (3pcs)','1,400','{% static 'shop/images/bowls.png' %}','Set of 3 heavy-duty carbon steel non-stick baking trays. Sizes: 25cm, 30cm and 35cm. PFOA-free coating. Dishwasher safe. Ideal for mandazi, cookies, bread and roasts.','Baking')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Non-Stick Baking Tray Set')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Non-Stick Baking Tray Set (3pcs)','1400','{% static 'shop/images/bowls.png' %}','3pcs carbon steel baking trays.','Baking')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Baking</div>
-                <div class="product-name">Non-Stick Baking Tray Set (3pcs)</div>
-                <div class="product-desc">3 sizes, carbon steel, PFOA-free, mandazi &amp; bread.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,400</span><span class="price-old">KES
-                            2,000</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Non-Stick Baking Tray Set (3pcs)',1400,'{% static 'shop/images/bowls.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="baking">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/bowls.png' %}" alt="Round Cake Tin"
-                    onclick="openModal('Non-Stick Cake Tin Set (3pcs)','1,000','{% static 'shop/images/bowls.png' %}','Set of 3 round non-stick cake tins: 15cm, 20cm, 25cm. Heavy-gauge steel with quick-release base. Ideal for birthday cakes, sponge and fruitcake. PFOA-free.','Baking')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Non-Stick Cake Tin Set')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Non-Stick Cake Tin Set (3pcs)','1000','{% static 'shop/images/bowls.png' %}','3pcs round non-stick cake tins.','Baking')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Baking</div>
-                <div class="product-name">Non-Stick Cake Tin Set (3pcs)</div>
-                <div class="product-desc">Quick-release base, 3 ring sizes 15–25cm, PFOA-free.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,000</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Non-Stick Cake Tin Set (3pcs)',1000,'{% static 'shop/images/bowls.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="baking">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Measuring Cups and Spoons"
-                    onclick="openModal('Measuring Cups &amp; Spoons Set (10pcs)','750','{% static 'shop/images/utensils.png' %}','10-piece stainless steel measuring cups and spoons set. Sizes from 1/4 tsp to 1 cup. Engraved measurements, dishwasher safe. Essential for baking and cooking accuracy.','Baking')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Measuring Cups Spoons Set')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Measuring Cups &amp; Spoons Set (10pcs)','750','{% static 'shop/images/utensils.png' %}','10pcs stainless measuring cups &amp; spoons.','Baking')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Baking</div>
-                <div class="product-name">Measuring Cups &amp; Spoons (10pcs)</div>
-                <div class="product-desc">Stainless steel, engraved markings, dishwasher safe.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 750</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Measuring Cups & Spoons Set (10pcs)',750,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== ACCESSORIES ===== -->
-
-        <div class="product-card fade-up" data-cat="accessories">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/knives.png' %}" alt="Bamboo Chopping Board"
-                    onclick="openModal('Bamboo Chopping Board (Large)','1,300','{% static 'shop/images/knives.png' %}','Extra-large 40x30cm bamboo chopping board. Naturally antibacterial and knife-friendly surface. Juice groove around the edge to catch drips. Sustainable material.','Accessories')">
-                <span class="product-badge sale">Popular</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Bamboo Chopping Board Large')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Bamboo Chopping Board (Large)','1300','{% static 'shop/images/knives.png' %}','40x30cm bamboo board with juice groove.','Accessories')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Accessories</div>
-                <div class="product-name">Bamboo Chopping Board (Large)</div>
-                <div class="product-desc">40×30cm, antibacterial, juice groove, eco-friendly.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,300</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Bamboo Chopping Board (Large)',1300,'{% static 'shop/images/knives.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="accessories">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Kitchen Weighing Scale"
-                    onclick="openModal('Digital Kitchen Scale 5kg','1,800','{% static 'shop/images/utensils.png' %}','Digital kitchen scale with 5kg max capacity and 1g precision. Tare function. Large LCD display. Auto shut-off. Includes a removable stainless steel bowl. Batteries included.','Accessories')">
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Digital Kitchen Scale 5kg')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Digital Kitchen Scale 5kg','1800','{% static 'shop/images/utensils.png' %}','5kg digital kitchen scale, 1g precision.','Accessories')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Accessories</div>
-                <div class="product-name">Digital Kitchen Scale 5kg</div>
-                <div class="product-desc">5kg capacity, 1g precision, tare function, LCD display.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,800</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Digital Kitchen Scale 5kg',1800,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="accessories">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Thermos Flask"
-                    onclick="openModal('Stainless Steel Thermos Flask 1L','1,600','{% static 'shop/images/utensils.png' %}','1 litre double-wall stainless steel vacuum flask. Keeps drinks hot for 12 hours or cold for 24 hours. Leak-proof lid, wide mouth. Ideal for tea, uji or cold water.','Accessories')">
-                <button class="product-wishlist"
-                    onclick="toggleWishlist(this,'Stainless Steel Thermos Flask 1L')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Stainless Steel Thermos Flask 1L','1600','{% static 'shop/images/utensils.png' %}','1L vacuum flask, 12hr hot / 24hr cold.','Accessories')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Accessories</div>
-                <div class="product-name">Thermos Flask 1L</div>
-                <div class="product-desc">Double-wall steel, hot 12hr / cold 24hr, leak-proof.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 1,600</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Stainless Steel Thermos Flask 1L',1600,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card fade-up" data-cat="accessories">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/utensils.png' %}" alt="Apron Set"
-                    onclick="openModal('Chef Kitchen Apron','850','{% static 'shop/images/utensils.png' %}','Professional chef apron made from thick 100% cotton canvas. Adjustable neck strap and long ties. Front pockets. Machine washable. One size fits all. Available in black.','Accessories')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Chef Kitchen Apron')">♡</button>
-                <div class="product-overlay"><button class="btn btn-primary"
-                        onclick="openModal('Chef Kitchen Apron','850','{% static 'shop/images/utensils.png' %}','100% cotton chef apron with pockets.','Accessories')">Quick
-                        View</button></div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Accessories</div>
-                <div class="product-name">Chef Kitchen Apron</div>
-                <div class="product-desc">100% cotton canvas, adjustable, front pockets, washable.</div>
-                <div class="product-footer">
-                    <div class="product-price"><span class="price-current">KES 850</span></div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Chef Kitchen Apron',850,'{% static 'shop/images/utensils.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
 
     </div><!-- /products-grid -->
 

@@ -62,33 +62,17 @@
         <a href="{% url 'products' %}?cat=all" class="cat-card fade-up" style="text-decoration:none;">
             <div class="cat-icon">🍳</div>
             <div class="cat-name">All Items</div>
-            <div class="cat-count">30+ products</div>
+            <div class="cat-count">Check collection</div>
         </a>
-        <a href="{% url 'products' %}?cat=pots" class="cat-card fade-up" style="text-decoration:none;">
-            <div class="cat-icon">🥘</div>
-            <div class="cat-name">Pots & Pans</div>
-            <div class="cat-count">8 products</div>
+        {% for cat in categories %}
+        <a href="{% url 'products' %}?cat={{ cat.slug }}" class="cat-card fade-up" style="text-decoration:none;">
+            <div class="cat-icon">
+                {% if cat.slug == 'sufuria' %}🥘{% elif cat.slug == 'knives' %}🔪{% elif cat.slug == 'utensils' %}🥄{% elif cat.slug == 'bowls' %}🥣{% elif cat.slug == 'appliances' %}⚡{% elif cat.slug == 'pans' %}🍳{% else %}🧁{% endif %}
+            </div>
+            <div class="cat-name">{{ cat.name }}</div>
+            <div class="cat-count">Explore now</div>
         </a>
-        <a href="{% url 'products' %}?cat=knives" class="cat-card fade-up" style="text-decoration:none;">
-            <div class="cat-icon">🔪</div>
-            <div class="cat-name">Knives</div>
-            <div class="cat-count">6 products</div>
-        </a>
-        <a href="{% url 'products' %}?cat=utensils" class="cat-card fade-up" style="text-decoration:none;">
-            <div class="cat-icon">🥄</div>
-            <div class="cat-name">Utensils</div>
-            <div class="cat-count">10 products</div>
-        </a>
-        <a href="{% url 'products' %}?cat=bowls" class="cat-card fade-up" style="text-decoration:none;">
-            <div class="cat-icon">🥣</div>
-            <div class="cat-name">Bowls</div>
-            <div class="cat-count">5 products</div>
-        </a>
-        <a href="{% url 'products' %}?cat=appliances" class="cat-card fade-up" style="text-decoration:none;">
-            <div class="cat-icon">⚡</div>
-            <div class="cat-name">Appliances</div>
-            <div class="cat-count">6 products</div>
-        </a>
+        {% endfor %}
     </div>
     <div style="text-align:center;margin-top:2.5rem;">
         <a href="{% url 'products' %}" class="btn btn-outline btn-lg fade-up">Browse All Products →</a>
@@ -107,89 +91,44 @@
 
     <div class="products-grid">
 
-        <!-- Product 1 -->
-        <div class="product-card fade-up" data-cat="pots">
+        {% for product in featured_products %}
+        <div class="product-card fade-up" data-cat="{{ product.category.slug }}">
             <div class="product-img-wrap">
-                <img src="{% static 'shop/images/pots.png' %}" alt="Stainless Steel Cookware Set"
-                    onclick="openModal('Stainless Steel Cookware Set', 129.99, '{% static 'shop/images/pots.png' %}', '7-piece premium stainless steel cookware set with tri-ply construction for even heat distribution. Dishwasher safe and oven-proof up to 500°F.', 'Pots & Pans')">
-                <span class="product-badge sale">Sale</span>
-                <button class="product-wishlist"
-                    onclick="toggleWishlist(this,'Stainless Steel Cookware Set')">♡</button>
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}" 
+                     alt="{{ product.name }}"
+                     onclick="openModal('{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
+                
+                {% if product.badge %}
+                <span class="product-badge {{ product.badge|lower }}">{% if product.badge == 'SALE' %}-{{ product.discount_percentage }}%{% else %}{{ product.badge }}{% endif %}</span>
+                {% endif %}
+                
+                <button class="product-wishlist" onclick="toggleWishlist(this,'{{ product.name|escapejs }}')">♡</button>
                 <div class="product-overlay">
                     <button class="btn btn-primary"
-                        onclick="openModal('Stainless Steel Cookware Set', 129.99, '{% static 'shop/images/pots.png' %}', '7-piece premium stainless steel cookware set.', 'Pots & Pans')">Quick
-                        View</button>
+                        onclick="openModal('{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
+                        Quick View
+                    </button>
                 </div>
             </div>
             <div class="product-info">
-                <div class="product-cat">Pots & Pans</div>
-                <div class="product-name">Stainless Steel Cookware Set</div>
-                <div class="product-desc">7-piece tri-ply construction, oven-safe up to 500°F.</div>
+                <div class="product-cat">{{ product.category.name }}</div>
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-desc">{{ product.description|truncatechars:60 }}</div>
                 <div class="product-footer">
                     <div class="product-price">
-                        <span class="price-current">$129.99</span>
-                        <span class="price-old">$179.99</span>
+                        <span class="price-current">KES {{ product.price|floatformat:0 }}</span>
+                        {% if product.old_price %}
+                        <span class="price-old">KES {{ product.old_price|floatformat:0 }}</span>
+                        {% endif %}
                     </div>
                     <button class="add-to-cart"
-                        onclick="addToCart('Stainless Steel Cookware Set', 129.99, '{% static 'shop/images/pots.png' %}')">+</button>
+                        onclick="addToCart('{{ product.name|escapejs }}', {{ product.price }}, '{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}')">
+                        +
+                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- Product 2 -->
-        <div class="product-card fade-up" data-cat="knives">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/knives.png' %}" alt="Professional Chef Knife Set"
-                    onclick="openModal('Professional Chef Knife Set', 89.99, '{% static 'shop/images/knives.png' %}', 'High-carbon stainless steel blades with ergonomic handles. Includes chef knife, bread knife, paring knife, and honing steel in a wooden block.', 'Knives')">
-                <span class="product-badge new">New</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'Professional Chef Knife Set')">♡</button>
-                <div class="product-overlay">
-                    <button class="btn btn-primary"
-                        onclick="openModal('Professional Chef Knife Set', 89.99, '{% static 'shop/images/knives.png' %}', 'High-carbon stainless steel blades.', 'Knives')">Quick
-                        View</button>
-                </div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Knives</div>
-                <div class="product-name">Professional Chef Knife Set</div>
-                <div class="product-desc">High-carbon stainless steel, 6-piece set with block.</div>
-                <div class="product-footer">
-                    <div class="product-price">
-                        <span class="price-current">$89.99</span>
-                    </div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('Professional Chef Knife Set', 89.99, '{% static 'shop/images/knives.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Product 3 -->
-        <div class="product-card fade-up" data-cat="appliances">
-            <div class="product-img-wrap">
-                <img src="{% static 'shop/images/blender.png' %}" alt="High-Power Smart Blender"
-                    onclick="openModal('High-Power Smart Blender', 149.99, '{% static 'shop/images/blender.png' %}', '1500-watt professional blender with 6 pre-programmed settings, self-cleaning mode, and 64oz BPA-free pitcher. Crushes ice in seconds.', 'Appliances')">
-                <span class="product-badge sale">Sale</span>
-                <button class="product-wishlist" onclick="toggleWishlist(this,'High-Power Smart Blender')">♡</button>
-                <div class="product-overlay">
-                    <button class="btn btn-primary"
-                        onclick="openModal('High-Power Smart Blender', 149.99, '{% static 'shop/images/blender.png' %}', '1500-watt professional blender.', 'Appliances')">Quick
-                        View</button>
-                </div>
-            </div>
-            <div class="product-info">
-                <div class="product-cat">Appliances</div>
-                <div class="product-name">High-Power Smart Blender</div>
-                <div class="product-desc">1500W, 6 smart programs, 64oz BPA-free pitcher.</div>
-                <div class="product-footer">
-                    <div class="product-price">
-                        <span class="price-current">$149.99</span>
-                        <span class="price-old">$199.99</span>
-                    </div>
-                    <button class="add-to-cart"
-                        onclick="addToCart('High-Power Smart Blender', 149.99, '{% static 'shop/images/blender.png' %}')">+</button>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
 
     </div>
 
@@ -217,7 +156,7 @@
                 <div class="author-avatar">SR</div>
                 <div>
                     <div class="author-name">Sarah R.</div>
-                    <div class="author-loc">📍 New York, USA</div>
+                    <div class="author-loc">📍 Nairobi, Kenya</div>
                 </div>
             </div>
         </div>
@@ -232,7 +171,7 @@
                 <div class="author-avatar">MJ</div>
                 <div>
                     <div class="author-name">Marcus J.</div>
-                    <div class="author-loc">📍 London, UK</div>
+                    <div class="author-loc">📍 Mombasa, Kenya</div>
                 </div>
             </div>
         </div>
@@ -247,7 +186,7 @@
                 <div class="author-avatar">AL</div>
                 <div>
                     <div class="author-name">Aisha L.</div>
-                    <div class="author-loc">📍 Nairobi, Kenya</div>
+                    <div class="author-loc">📍 Kisumu, Kenya</div>
                 </div>
             </div>
         </div>
@@ -261,10 +200,34 @@
         <p>Subscribe for exclusive deals, new arrivals, and expert cooking tips delivered to your inbox.</p>
         <form class="newsletter-form" id="newsletterForm">
             {% csrf_token %}
-            <input type="email" placeholder="Your email address…" required>
+            <input type="email" name="email" placeholder="Your email address…" required>
             <button type="submit" class="btn btn-primary">Subscribe</button>
         </form>
     </div>
 </section>
+
+<script>
+document.getElementById('newsletterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch("{% url 'newsletter_subscribe' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            showToast(data.message, 'success');
+            this.reset();
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+});
+</script>
+
 
 {% endblock %}
