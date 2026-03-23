@@ -25,7 +25,7 @@ class SignUpForm(UserCreationForm):
 def shop(request):
     featured_products = Product.objects.filter(is_featured=True, is_active=True)[:3]
     categories = Category.objects.all()[:6]
-    return render(request, 'shop.html', {
+    return render(request, 'shop/shop.html', {
         'featured_products': featured_products,
         'categories': categories
     })
@@ -45,7 +45,7 @@ def login_view(request):
         messages.success(request, f'Welcome back, {user.first_name or user.username}! 🎉')
         return redirect(request.GET.get('next', 'shop'))
 
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'shop/login.html', {'form': form})
 
 
 def signup_view(request):
@@ -59,7 +59,7 @@ def signup_view(request):
         messages.success(request, f'Welcome to KitchenCraft, {user.first_name or user.username}! 🎉')
         return redirect('shop')
 
-    return render(request, 'signup.html', {'form': form})
+    return render(request, 'shop/signup.html', {'form': form})
 
 
 def logout_view(request):
@@ -80,7 +80,7 @@ def products(request):
     else:
         products = Product.objects.filter(category__slug=cat_slug, is_active=True)
         
-    return render(request, 'products.html', {
+    return render(request, 'shop/products.html', {
         'products': products,
         'categories': categories,
         'active_cat': cat_slug
@@ -88,7 +88,7 @@ def products(request):
 
 
 def about(request):
-    return render(request, 'about.html')
+    return render(request, 'shop/about.html')
 
 
 def contact(request):
@@ -104,23 +104,23 @@ def contact(request):
         messages.success(request, "Your message has been sent successfully! We'll get back to you soon.")
         return redirect('contact')
         
-    return render(request, 'contact.html')
+    return render(request, 'shop/contact.html')
 
 
 # ---------------------------------------------------------------------------
 # Hostel views (kept from original urls – not used in main shop navigation)
 # ---------------------------------------------------------------------------
 def hostels(request):
-    return render(request, 'hostels.html')
+    return render(request, 'shop/hostels.html')
 
 
 def add_hostel(request):
-    return render(request, 'add_hostel.html')
+    return render(request, 'shop/add_hostel.html')
 
 
 @login_required(login_url='login')
 def payment(request):
-    return render(request, 'payment.html')
+    return render(request, 'shop/payment.html')
 
 
 # ---------------------------------------------------------------------------
