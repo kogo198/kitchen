@@ -27,7 +27,11 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-rptc!6d-vu+&bp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,kitchen-2-ef2f.onrender.com'
+).split(',')
+
 ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS if h.strip()]
 
 
