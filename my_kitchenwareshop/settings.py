@@ -29,7 +29,7 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,kitchen-2-ef2f.onrender.com'
+    'localhost,127.0.0.1,kitchen-4-gl81.onrender.com'
 ).split(',')
 
 ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS if h.strip()]
