@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ---------- Product Modal ---------- */
     const modalOverlay = document.getElementById('productModal');
 
-    window.openModal = function (name, price, img, desc, cat) {
+    window.openModal = function (id, name, price, img, desc, cat) {
         if (!modalOverlay) return;
         modalOverlay.querySelector('.modal-name').textContent = name;
         modalOverlay.querySelector('.modal-price').textContent = 'KES ' + parseFloat(price).toLocaleString();
@@ -166,6 +166,13 @@ document.addEventListener('DOMContentLoaded', () => {
         modalOverlay.querySelector('.modal-img').alt = name;
         modalOverlay.querySelector('.modal-desc').textContent = desc;
         modalOverlay.querySelector('.modal-cat').textContent = cat;
+        
+        // Update review form action if it exists
+        const reviewForm = document.getElementById('reviewForm');
+        if (reviewForm) {
+            reviewForm.action = `/submit-review/${id}/`;
+        }
+
         modalOverlay.dataset.name = name;
         modalOverlay.dataset.price = price;
         modalOverlay.dataset.img = img;

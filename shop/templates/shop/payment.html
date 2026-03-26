@@ -252,42 +252,65 @@
         }
     };
 
-    // Form Submission Simulator
-    document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+    // Form Submission Real Integration
+    document.getElementById('checkoutForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        const items = JSON.parse(localStorage.getItem('kwCart')) || [];
-        if (items.length === 0) return;
+        const cart = JSON.parse(localStorage.getItem('kwCart')) || [];
+        if (cart.length === 0) return;
 
-        // Show overlay
+        const phone = document.getElementById('mpesaPhone').value;
+        const submitBtn = document.getElementById('submitBtn');
         const overlay = document.getElementById('processingOverlay');
         const title = document.getElementById('processingTitle');
         const desc = document.getElementById('processingDesc');
 
+        // Disable button
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
         overlay.style.display = 'flex';
 
-        if (method === 'mpesa') {
-            title.textContent = 'Awaiting M-Pesa PIN...';
-            desc.textContent = 'We have sent an STK push to your Safaricom line. Please enter your PIN on your phone to complete the payment of KES ' + totalNum.toLocaleString() + '.';
+        try {
+            const response = await fetch('{% url "place_order" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    payment_method: method,
+                    cart: cart,
+                    total: totalNum
+                })
+            });
 
-            // Simulate waiting for user to type PIN on phone
-            setTimeout(() => {
-                title.textContent = 'Confirming Payment...';
-                desc.textContent = 'Verifying transaction with Safaricom M-Pesa...';
+            const data = await response.json();
 
-                setTimeout(() => {
+            if (data.status === 'success' || data.status === 'warning') {
+                if (method === 'mpesa') {
+                    title.textContent = 'Awaiting M-Pesa PIN...';
+                    desc.textContent = data.message;
+                    
+                    // In a real app, you would poll an API or use WebSockets to check if payment is confirmed
+                    // For this demo, we'll show success after 10 seconds of "waiting"
+                    setTimeout(() => {
+                        paymentSuccess();
+                    }, 10000);
+                } else {
                     paymentSuccess();
-                }, 2000);
-            }, 5000); // 5 sec to "enter pin"
-
-        } else {
-            title.textContent = 'Processing Card...';
-            desc.textContent = 'Contacting your bank securely...';
-
-            // Simulate card process
-            setTimeout(() => {
-                paymentSuccess();
-            }, 3000);
+                }
+            } else {
+                alert('Error: ' + data.message);
+                overlay.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Try Again';
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong. Please try again.');
+            overlay.style.display = 'none';
+            submitBtn.disabled = false;
         }
     });
 
@@ -296,10 +319,10 @@
         const desc = document.getElementById('processingDesc');
         const spinner = document.querySelector('.spinner');
 
-        spinner.style.display = 'none';
-        title.textContent = 'Payment Successful! 🎉';
+        if (spinner) spinner.style.display = 'none';
+        title.textContent = 'Order Placed! 🛒';
         title.style.color = '#25d366';
-        desc.textContent = 'Thank you for your order. We are preparing it for dispatch. Redirecting you home...';
+        desc.textContent = 'Thank you! Your order has been registered. Redirecting you to your products...';
 
         // Clear cart
         localStorage.removeItem('kwCart');
@@ -307,7 +330,7 @@
 
         // Redirect
         setTimeout(() => {
-            window.location.href = '{% url "shop" %}';
+            window.location.href = '{% url "products" %}';
         }, 3000);
     }
 

@@ -47,6 +47,31 @@ class Product(models.Model):
             return int(((self.old_price - self.price) / self.old_price) * 100)
         return 0
 
+    @property
+    def average_rating(self):
+        reviews = self.reviews.all()
+        if not reviews:
+            return 0
+        return sum(review.rating for review in reviews) / reviews.count()
+
+    @property
+    def average_rating_percent(self):
+        return self.average_rating * 20
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.rating}* by {self.user.username}'
+
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -65,6 +90,8 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='mpesa')
     phone_number = models.CharField(max_length=15, blank=True, help_text='M-Pesa phone number')
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, help_text='M-Pesa Receipt Number')
+    is_paid = models.BooleanField(default=False)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

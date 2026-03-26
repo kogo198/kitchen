@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from .models import Category, Product, Order, OrderItem, ContactMessage, NewsletterSubscriber
+from .models import Category, Product, Order, OrderItem, ContactMessage, NewsletterSubscriber, Review
 
 
 # ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Order Details', {
-            'fields': ('user', 'status', 'payment_method', 'phone_number')
+            'fields': ('user', 'status', 'payment_method', 'phone_number', 'is_paid', 'transaction_id')
         }),
         ('Financials', {
             'fields': ('total_amount',)
@@ -160,6 +160,13 @@ class ContactMessageAdmin(admin.ModelAdmin):
     @admin.action(description='Mark selected as unread')
     def mark_as_unread(self, request, queryset):
         queryset.update(is_read=False)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('product', 'user', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('product__name', 'comment')
 
 
 # ---------------------------------------------------------------------------

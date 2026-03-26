@@ -31,7 +31,10 @@
 
         <div class="nav-actions">
             {% if user.is_authenticated %}
-            <span style="font-size:0.85rem;color:var(--muted)">Hi, <strong style="color:var(--primary)">{{ user.first_name|default:user.username }}</strong></span>
+            <a href="{% url 'dashboard' %}" 
+               style="font-size:0.85rem;color:var(--muted);text-decoration:none;margin-right:1rem;display:flex;align-items:center;gap:6px;">
+                👤 <strong style="color:var(--primary)">{{ user.first_name|default:user.username }}</strong>
+            </a>
             <button class="btn btn-outline cart-btn" id="cartTrigger">
                 🛒 Cart
                 <span class="cart-badge">0</span>
@@ -186,6 +189,29 @@
                     </div>
                 </div>
                 <button class="btn btn-primary btn-full" id="modalAddToCart">Add to Cart 🛒</button>
+
+                <!-- NEW Review Section in Modal -->
+                <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.1);">
+                    <h4 style="font-size:0.9rem;margin-bottom:1rem;color:#fff;">Write a Review</h4>
+                    <form id="reviewForm" method="POST" action="">
+                        {% csrf_token %}
+                        <div style="margin-bottom:0.75rem;">
+                            <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.4rem;">Rating</label>
+                            <select name="rating" style="background:var(--dark3);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:6px;border-radius:6px;width:100%;">
+                                <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                                <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                                <option value="3">⭐⭐⭐ (3/5)</option>
+                                <option value="2">⭐⭐ (2/5)</option>
+                                <option value="1">⭐ (1/5)</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:1rem;">
+                            <textarea name="comment" placeholder="Your thoughts on this product..." required
+                                style="width:100%;background:var(--dark3);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:10px;border-radius:6px;min-height:80px;font-family:inherit;font-size:0.85rem;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-outline btn-full" style="font-size:0.8rem;padding:0.4rem;">Submit Review</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

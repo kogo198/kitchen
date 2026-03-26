@@ -6,7 +6,10 @@ from django.contrib import messages
 from django import forms
 from django.http import JsonResponse
 
-from .models import Category, Product, Order, OrderItem, ContactMessage, NewsletterSubscriber
+from .models import Category, Product, Order, OrderItem, ContactMessage, NewsletterSubscriber, Review
+from .mpesa import MpesaClient
+import json
+from django.views.decorators.csrf import csrf_exempt
 # ---------------------------------------------------------------------------
 # Extended signup form (adds first_name, last_name, email)
 # ---------------------------------------------------------------------------
@@ -107,20 +110,132 @@ def contact(request):
     return render(request, 'shop/contact.html')
 
 
-# ---------------------------------------------------------------------------
-# Hostel views (kept from original urls – not used in main shop navigation)
-# ---------------------------------------------------------------------------
-def hostels(request):
-    return render(request, 'shop/hostels.html')
 
 
-def add_hostel(request):
-    return render(request, 'shop/add_hostel.html')
+@login_required(login_url='login')
+def dashboard(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    reviews = Review.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'shop/dashboard.html', {
+        'orders': orders,
+        'reviews': reviews
+    })
 
 
 @login_required(login_url='login')
 def payment(request):
     return render(request, 'shop/payment.html')
+
+
+@login_required(login_url='login')
+def place_order(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            phone = data.get('phone')
+            payment_method = data.get('payment_method', 'mpesa')
+            cart = data.get('cart', [])
+            total = data.get('total', 0)
+
+            if not cart:
+                return JsonResponse({'status': 'error', 'message': 'Cart is empty'}, status=400)
+
+            # Create Order
+            order = Order.objects.create(
+                user=request.user,
+                phone_number=phone,
+                payment_method=payment_method,
+                total_amount=total,
+                status='pending'
+            )
+
+            # Create Order Items
+            for item in cart:
+                OrderItem.objects.create(
+                    order=order,
+                    product_name=item['name'],
+                    product_price=item['price'],
+                    quantity=item['qty'],
+                    image_url=item.get('image', '')
+                )
+
+            # If M-Pesa, trigger STK Push
+            if payment_method == 'mpesa':
+                client = MpesaClient()
+                response = client.stk_push(phone, total, f"Order {order.id}")
+                
+                if "ResponseCode" in response and response["ResponseCode"] == "0":
+                    return JsonResponse({
+                        'status': 'success', 
+                        'message': 'STK Push sent to your phone! Please enter PIN.',
+                        'order_id': order.id
+                    })
+                else:
+                    return JsonResponse({
+                        'status': 'warning', 
+                        'message': 'Order created, but M-Pesa push failed. Please pay manually.',
+                        'order_id': order.id,
+                        'debug': response
+                    })
+
+            return JsonResponse({'status': 'success', 'message': 'Order placed successfully!', 'order_id': order.id})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def mpesa_callback(request):
+    """
+    Safaricom calls this URL when a payment has been processed (Success or Fail)
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        print(f"M-PESA CALLBACK DATA: {data}")
+        
+        result_code = data.get('stkCallback', {}).get('ResultCode')
+        if result_code == 0:
+            # Payment Success!
+            items = data.get('stkCallback', {}).get('CallbackMetadata', {}).get('Item', [])
+            receipt_number = ""
+            for item in items:
+                if item.get('Name') == 'MpesaReceiptNumber':
+                    receipt_number = item.get('Value')
+            
+            # Find the order via AccountReference or we can use metadata if passed
+            # For now, let's assume we can match it (In production, use CheckoutRequestID)
+            checkout_request_id = data.get('stkCallback', {}).get('CheckoutRequestID')
+            # Mark the most recent pending order for this phone/amount as paid
+            # (In a real app, you'd store the CheckoutRequestID in the Order model)
+            order = Order.objects.filter(is_paid=False).order_by('-created_at').first()
+            if order:
+                order.is_paid = True
+                order.transaction_id = receipt_number
+                order.status = 'processing'
+                order.save()
+
+        return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required(login_url='login')
+def submit_review(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id)
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+        
+        Review.objects.create(
+            product=product,
+            user=request.user,
+            rating=rating,
+            comment=comment
+        )
+        messages.success(request, "Your review has been submitted! Thank you.")
+        return redirect('products') # Or redirect back to product detail if it existed
+    return redirect('products')
 
 
 # ---------------------------------------------------------------------------

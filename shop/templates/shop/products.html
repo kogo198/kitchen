@@ -45,7 +45,7 @@
             <div class="product-img-wrap">
                 <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}" 
                      alt="{{ product.name }}"
-                     onclick="openModal('{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
+                     onclick="openModal('{{ product.id }}', '{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
                 
                 {% if product.badge %}
                 <span class="product-badge {{ product.badge|lower }}">{% if product.badge == 'SALE' %}-{{ product.discount_percentage }}%{% else %}{{ product.badge }}{% endif %}</span>
@@ -54,7 +54,7 @@
                 <button class="product-wishlist" onclick="toggleWishlist(this,'{{ product.name|escapejs }}')">♡</button>
                 <div class="product-overlay">
                     <button class="btn btn-primary"
-                        onclick="openModal('{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
+                        onclick="openModal('{{ product.id }}', '{{ product.name|escapejs }}','{{ product.price }}','{% if product.image %}{{ product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}','{{ product.description|escapejs }}','{{ product.category.name|escapejs }}')">
                         Quick View
                     </button>
                 </div>
@@ -62,6 +62,15 @@
             <div class="product-info">
                 <div class="product-cat">{{ product.category.name }}</div>
                 <div class="product-name">{{ product.name }}</div>
+                
+                <!-- NEW Rating Display -->
+                <div class="rating-display">
+                    <div class="stars-outer">
+                        <div class="stars-inner" style="width: {{ product.average_rating_percent }}%"></div>
+                    </div>
+                    <span class="review-count">({{ product.reviews.count }})</span>
+                </div>
+
                 <div class="product-desc">{{ product.description|truncatechars:60 }}</div>
                 <div class="product-footer">
                     <div class="product-price">

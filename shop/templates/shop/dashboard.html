@@ -1,0 +1,196 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+{% block title %}Dashboard – KitchenCraft Shop{% endblock %}
+
+{% block content %}
+<section style="padding:120px 5% 80px;min-height:100vh;background:var(--dark);">
+    
+    <div class="section-header fade-up" style="margin-bottom:3rem;">
+        <span class="section-label">Account Management</span>
+        <h1 class="section-title">Welcome, {{ user.first_name|default:user.username }}</h1>
+        <p class="section-sub">Track your orders, view your reviews, and manage your kitchenware purchases.</p>
+    </div>
+
+    <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 2fr;gap:3rem;align-items:start;">
+        
+        <!-- Sidebar -->
+        <div class="fade-up" style="display:grid;gap:1.5rem;">
+            <div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:2rem;">
+                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                    <div style="width:50px;height:50px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;color:var(--dark);">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div>
+                        <div style="color:#fff;font-weight:600;">{{ user.get_full_name|default:user.username }}</div>
+                        <div style="color:var(--muted);font-size:0.85rem;">{{ user.email }}</div>
+                    </div>
+                </div>
+                <div style="display:grid;gap:0.5rem;">
+                    <button class="nav-tab active" data-tab="orders">📦 Your Orders</button>
+                    <button class="nav-tab" data-tab="reviews">⭐ Your Reviews</button>
+                    <a href="{% url 'logout' %}" style="margin-top:1rem;color:var(--danger);font-size:0.9rem;text-decoration:none;display:block;">Logout Account →</a>
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div style="background:linear-gradient(135deg, var(--primary), var(--accent));border-radius:var(--radius);padding:2rem;color:var(--dark);">
+                <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;margin-bottom:1rem;opacity:0.8;">Summary</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-size:2rem;font-weight:800;">{{ orders.count }}</div>
+                        <div style="font-size:0.85rem;font-weight:600;">Total Orders</div>
+                    </div>
+                    <div>
+                        <div style="font-size:2rem;font-weight:800;">{{ reviews.count }}</div>
+                        <div style="font-size:0.85rem;font-weight:600;">Reviews Given</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content (Tabs) -->
+        <div class="fade-up">
+            
+            <!-- Orders Tab -->
+            <div id="tab-orders" class="tab-content">
+                <h3 style="font-family:'Playfair Display',serif;color:#fff;font-size:1.5rem;margin-bottom:2rem;">Order History</h3>
+                
+                {% if orders %}
+                    {% for order in orders %}
+                    <div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;transition:var(--transition);" class="order-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
+                            <div>
+                                <div style="color:var(--muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;">Order #{{ order.id }}</div>
+                                <div style="color:#fff;font-weight:600;">{{ order.created_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div style="display:flex;gap:0.75rem;align-items:center;">
+                                <span class="badge badge-{{ order.status }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                                {% if order.is_paid %}
+                                <span class="badge badge-paid">✅ Paid</span>
+                                {% else %}
+                                <span class="badge badge-unpaid">⏳ Unpaid</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="border-top:1px solid rgba(255,255,255,0.05);padding-top:1rem;margin-top:1rem;display:flex;justify-content:space-between;align-items:center;">
+                            <div style="display:flex;gap:1rem;">
+                                {% for item in order.items.all|slice:":3" %}
+                                <div style="width:40px;height:40px;background:var(--dark3);border-radius:4px;padding:4px;" title="{{ item.product_name }}">
+                                    <img src="{{ item.image_url }}" style="width:100%;height:100%;object-fit:contain;mix-blend-mode:lighten;" alt="">
+                                </div>
+                                {% endfor %}
+                                {% if order.items.count > 3 %}
+                                <div style="width:40px;height:40px;background:var(--dark3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--muted);">
+                                    +{{ order.items.count|add:"-3" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="color:var(--muted);font-size:0.8rem;">Total Amount</div>
+                                <div style="color:var(--primary);font-weight:700;font-size:1.1rem;">KES {{ order.total_amount|floatformat:0 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align:center;padding:5rem 2rem;background:var(--dark2);border-radius:var(--radius);border:1px dashed rgba(255,255,255,0.1);">
+                        <div style="font-size:3rem;margin-bottom:1rem;">🛒</div>
+                        <p style="color:var(--muted);">You haven't placed any orders yet.</p>
+                        <a href="{% url 'products' %}" class="btn btn-primary" style="margin-top:1.5rem;">Start Shopping</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Reviews Tab -->
+            <div id="tab-reviews" class="tab-content" style="display:none;">
+                <h3 style="font-family:'Playfair Display',serif;color:#fff;font-size:1.5rem;margin-bottom:2rem;">Your Reviews</h3>
+                
+                {% if reviews %}
+                    {% for review in reviews %}
+                    <div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;">
+                        <div style="display:flex;gap:1.5rem;align-items:center;">
+                            <div style="width:60px;height:60px;background:var(--dark3);border-radius:12px;padding:8px;flex-shrink:0;">
+                                <img src="{% if review.product.image %}{{ review.product.image.url }}{% else %}{% static 'shop/images/pots.png' %}{% endif %}" style="width:100%;height:100%;object-fit:contain;mix-blend-mode:lighten;" alt="">
+                            </div>
+                            <div style="flex:1;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+                                    <h4 style="color:#fff;font-size:1rem;margin:0;">{{ review.product.name }}</h4>
+                                    <span style="color:var(--muted);font-size:0.75rem;">{{ review.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="rating-display" style="margin-bottom:0.75rem;">
+                                    <div class="stars-outer">
+                                        <div class="stars-inner" style="width: {{ review.rating|add:0|multiply:20 }}%"></div>
+                                    </div>
+                                </div>
+                                <p style="color:var(--muted);font-size:0.875rem;margin:0;font-style:italic;">"{{ review.comment }}"</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align:center;padding:5rem 2rem;background:var(--dark2);border-radius:var(--radius);border:1px dashed rgba(255,255,255,0.1);">
+                        <div style="font-size:3rem;margin-bottom:1rem;">⭐</div>
+                        <p style="color:var(--muted);">You haven't reviewed any products yet.</p>
+                        <a href="{% url 'products' %}" class="btn btn-outline" style="margin-top:1.5rem;">Browse Products</a>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+<style>
+    .nav-tab {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        text-align: left;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .nav-tab:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .nav-tab.active { background: var(--primary); color: var(--dark); }
+
+    .badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 50px;
+        display: inline-block;
+    }
+    .badge-pending { background: rgba(243,156,18,0.15); color: #f39c12; }
+    .badge-processing { background: rgba(52,152,219,0.15); color: #3498db; }
+    .badge-delivered { background: rgba(39,174,96,0.15); color: #27ae60; }
+    .badge-paid { background: rgba(37,211,102,0.15); color: #25d366; }
+    .badge-unpaid { background: rgba(224,82,82,0.15); color: var(--danger); }
+
+    .order-card:hover { transform: translateX(8px); border-color: rgba(232,160,69,0.2) !important; }
+</style>
+
+<script>
+document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Toggle tabs
+        document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Toggle content
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.getElementById('tab-' + target).style.display = 'block';
+    });
+});
+</script>
+{% endblock %}

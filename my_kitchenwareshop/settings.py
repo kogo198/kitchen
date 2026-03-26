@@ -137,4 +137,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Auth redirects
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+# M-Pesa Daraja API Settings
+MPESA_CONSUMER_KEY = os.environ.get('MPESA_CONSUMER_KEY', '')
+MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET', '')
+MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE', '174379') # Sandbox Paybill
+MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY', '')

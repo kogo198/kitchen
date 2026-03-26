@@ -11,5 +11,9 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
 
     path('payment/', views.payment, name='payment'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('place-order/', views.place_order, name='place_order'),
+    path('mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('submit-review/<int:product_id>/', views.submit_review, name='submit_review'),
     path('newsletter-subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
 ]
